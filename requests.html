@@ -7,7 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script> <!-- Add this line -->
+   
     <link rel="stylesheet" href="index.css">
     <style>
         /* Basic styling for the form */
@@ -123,7 +123,6 @@
             apiKey: "AIzaSyAhcjMfi1p5YGyRiK14ux7gdYcEAYBXtGc",
             authDomain: "request-form-263db.firebaseapp.com",
             projectId: "request-form-263db",
-            storageBucket: "request-form-263db.appspot.com",
             messagingSenderId: "729877304681",
             appId: "1:729877304681:web:3983c69cee3afd18ae59f8"
         };
@@ -135,7 +134,6 @@
 
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const storage = firebase.storage();  // Add this line
 
         auth.onAuthStateChanged(user => {
             if (user) {
@@ -150,124 +148,88 @@
             }
         });
         function createPost() {
-            const title = document.getElementById("title").value;
-            const description = document.getElementById("description").value;
-            const imageFile = document.getElementById("image").files[0]; // Get the image file
+    const title = document.getElementById("title").value;
+    const description = document.getElementById("description").value;
+    const imageFile = document.getElementById("image").files[0]; // Get the image file
 
-            const user = auth.currentUser;
+    const user = auth.currentUser;
 
-            if (!user) {
-                console.log("No user logged in.");
-                return;
-            }
+    if (!user) {
+        console.log("No user logged in.");
+        return;
+    }
 
-            if (!title || !description) {
-                alert("Please fill in all fields.");
-                return;
-            }
+    if (!title || !description) {
+        alert("Please fill in all fields.");
+        return;
+    }
 
-            let imageUrl = "";  // Initialize imageUrl
+    // File size limit (e.g., 1 MB = 1,048,576 bytes)
+    const fileSizeLimit = 1 * 1024 * 1024; // 1 MB
 
-            if (imageFile) {
-                // Upload the image to Firebase Storage
-                const storageRef = storage.ref(`images/${user.uid}/${imageFile.name}`);
-                const uploadTask = storageRef.put(imageFile);
+    if (imageFile && imageFile.size > fileSizeLimit) {
+        alert("File size exceeds the 1 MB limit. Please upload a smaller file.");
+        return;
+    }
 
-                // Monitor the upload progress
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        // Observe state change events such as progress, pause, and resume:
-                        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        console.log('Upload is ' + progress + '% done');
-                    },
-                    (error) => {
-                        // Handle unsuccessful uploads
-                        console.error("Error uploading image:", error);
-                    },
-                    () => {
-                        // Handle successful uploads on complete
-                        // Now download the image URL
-                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                            console.log('File available at', downloadURL);
-                            imageUrl = downloadURL;
-
-                            // Save the post data to Firestore, including the image URL
-                            savePost(title, description, imageUrl, user);
-                        });
-                    }
-                );
-            } else {
-                // If no image is selected, save the post without an image URL
+    if (imageFile) {
+        // Upload the image to Imgur
+        uploadImageToImgur(imageFile)
+            .then((imageUrl) => {
+                // Save the post data to Firestore with the image URL
                 savePost(title, description, imageUrl, user);
-            }
-        }
-
-        function savePost(title, description, imageUrl, user) {
-            // Save the post data to Firestore
-            db.collection("posts").add({
-                title: title,
-                description: description,
-                imageUrl: imageUrl,  // Save the image URL
-                posterId: user.uid,
-                posterName: user.displayName,  // Or whatever you use for the name
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then((docRef) => {
-                console.log("Document written with ID: ", docRef.id);
-                // Clear the form
-                document.getElementById("title").value = "";
-                document.getElementById("description").value = "";
-                document.getElementById("image").value = "";  // Clear the image input
-                // Optionally, display a success message
-                 loadPosts(); // Reload the posts after creating a new one
             })
             .catch((error) => {
-                console.error("Error adding document: ", error);
+                console.error("Error uploading image to Imgur:", error);
+                alert("Failed to upload image. Please try again.");
             });
-        }
-                function loadPosts() {
-            const postsContainer = document.getElementById("postsContainer");
-            postsContainer.innerHTML = ""; // Clear existing posts
+    } else {
+        // If no image is selected, save the post without an image URL
+        savePost(title, description, "", user);
+    }
+}
+function loadPosts() {
+    const postsContainer = document.getElementById("postsContainer");
+    postsContainer.innerHTML = ""; // Clear existing posts
 
-            db.collection("posts").orderBy("timestamp", "desc").get()
-                .then((querySnapshot) => {
-                    querySnapshot.forEach((doc) => {
-                        const post = doc.data();
+    db.collection("posts").orderBy("timestamp", "desc").get()
+        .then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                const post = doc.data();
 
-                        // Create post elements
-                        const postDiv = document.createElement("div");
-                        postDiv.classList.add("post");
+                // Create post elements
+                const postDiv = document.createElement("div");
+                postDiv.classList.add("post");
 
-                        const titleElement = document.createElement("h2");
-                        titleElement.classList.add("post-title");
-                        titleElement.textContent = post.title;
-                        postDiv.appendChild(titleElement);
+                const titleElement = document.createElement("h2");
+                titleElement.classList.add("post-title");
+                titleElement.textContent = post.title;
+                postDiv.appendChild(titleElement);
 
-                        if (post.imageUrl) {
-                            const imageElement = document.createElement("img");
-                            imageElement.classList.add("post-image");
-                            imageElement.src = post.imageUrl;
-                            postDiv.appendChild(imageElement);
-                        }
+                if (post.imageUrl) {
+                    const imageElement = document.createElement("img");
+                    imageElement.classList.add("post-image");
+                    imageElement.src = post.imageUrl; // Use the image URL
+                    postDiv.appendChild(imageElement);
+                }
 
-                        const descriptionElement = document.createElement("p");
-                        descriptionElement.classList.add("post-description");
-                        descriptionElement.textContent = post.description;
-                        postDiv.appendChild(descriptionElement);
+                const descriptionElement = document.createElement("p");
+                descriptionElement.classList.add("post-description");
+                descriptionElement.textContent = post.description;
+                postDiv.appendChild(descriptionElement);
 
-                        const posterElement = document.createElement("p");
-                        posterElement.classList.add("post-poster");
-                        posterElement.innerHTML = `Posted by: <a href="profile.html?userId=${post.posterId}">${post.posterName}</a>`;
-                        postDiv.appendChild(posterElement);
+                const posterElement = document.createElement("p");
+                posterElement.classList.add("post-poster");
+                posterElement.innerHTML = `Posted by: <a href="profile.html?userId=${post.posterId}">${post.posterName}</a>`;
+                postDiv.appendChild(posterElement);
 
-                        postsContainer.appendChild(postDiv);
-                    });
-                })
-                .catch((error) => {
-                    console.error("Error getting posts: ", error);
-                });
-        }
+                postsContainer.appendChild(postDiv);
+            });
+        })
+        .catch((error) => {
+            console.error("Error getting posts: ", error);
+        });
+}
 
     </script>
 </body>
