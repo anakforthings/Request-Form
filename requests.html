@@ -7,6 +7,116 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script> <!-- Add this line -->
+    <link rel="stylesheet" href="index.css">
+    <style>
+        /* Basic styling for the form */
+        form {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box; /* Ensures padding and border are included in the element's total width and height */
+        }
+
+        textarea {
+            height: 100px; /* Adjust as needed */
+            resize: vertical; /* Allows the user to adjust the height */
+        }
+
+        button {
+            background-color: #5cb85c;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #449d44;
+        }
+
+        /* Styling for the image upload */
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+                .post {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+
+        .post-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .post-description {
+            margin-bottom: 10px;
+        }
+
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .post-poster {
+            font-style: italic;
+            text-align: right;
+        }
+
+        .post-poster a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .post-poster a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body class="requests">
+    <h1 class="page-title">Request Forum</h1>
+    <p class="page-subtitle">Welcome to your requests page.</p>
+
+    <form id="postForm">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+
+        <label for="image">Image:</label>
+        <input type="file" id="image" name="image" accept="image/*">
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required></textarea>
+
+        <button type="button" onclick="createPost()">Create Post</button>
+    </form>
+
+     <!-- Container to display posts -->
+    <div id="postsContainer"></div>
+
     <script>
         // Firebase configuration (Ensure this matches your main config)
         const firebaseConfig = {
@@ -24,23 +134,141 @@
         }
 
         const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();  // Add this line
 
         auth.onAuthStateChanged(user => {
             if (user) {
                 // User is signed in.
                 console.log("User is signed in:", user);
                 // You can display the user's information here
+                loadPosts(); // Load posts when the user is signed in
             } else {
                 // No user is signed in.
                 console.log("No user is signed in.");
                 window.location.href = "index.html"; // Redirect to sign-in page
             }
         });
+        function createPost() {
+            const title = document.getElementById("title").value;
+            const description = document.getElementById("description").value;
+            const imageFile = document.getElementById("image").files[0]; // Get the image file
+
+            const user = auth.currentUser;
+
+            if (!user) {
+                console.log("No user logged in.");
+                return;
+            }
+
+            if (!title || !description) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            let imageUrl = "";  // Initialize imageUrl
+
+            if (imageFile) {
+                // Upload the image to Firebase Storage
+                const storageRef = storage.ref(`images/${user.uid}/${imageFile.name}`);
+                const uploadTask = storageRef.put(imageFile);
+
+                // Monitor the upload progress
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        // Observe state change events such as progress, pause, and resume:
+                        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        console.log('Upload is ' + progress + '% done');
+                    },
+                    (error) => {
+                        // Handle unsuccessful uploads
+                        console.error("Error uploading image:", error);
+                    },
+                    () => {
+                        // Handle successful uploads on complete
+                        // Now download the image URL
+                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                            console.log('File available at', downloadURL);
+                            imageUrl = downloadURL;
+
+                            // Save the post data to Firestore, including the image URL
+                            savePost(title, description, imageUrl, user);
+                        });
+                    }
+                );
+            } else {
+                // If no image is selected, save the post without an image URL
+                savePost(title, description, imageUrl, user);
+            }
+        }
+
+        function savePost(title, description, imageUrl, user) {
+            // Save the post data to Firestore
+            db.collection("posts").add({
+                title: title,
+                description: description,
+                imageUrl: imageUrl,  // Save the image URL
+                posterId: user.uid,
+                posterName: user.displayName,  // Or whatever you use for the name
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then((docRef) => {
+                console.log("Document written with ID: ", docRef.id);
+                // Clear the form
+                document.getElementById("title").value = "";
+                document.getElementById("description").value = "";
+                document.getElementById("image").value = "";  // Clear the image input
+                // Optionally, display a success message
+                 loadPosts(); // Reload the posts after creating a new one
+            })
+            .catch((error) => {
+                console.error("Error adding document: ", error);
+            });
+        }
+                function loadPosts() {
+            const postsContainer = document.getElementById("postsContainer");
+            postsContainer.innerHTML = ""; // Clear existing posts
+
+            db.collection("posts").orderBy("timestamp", "desc").get()
+                .then((querySnapshot) => {
+                    querySnapshot.forEach((doc) => {
+                        const post = doc.data();
+
+                        // Create post elements
+                        const postDiv = document.createElement("div");
+                        postDiv.classList.add("post");
+
+                        const titleElement = document.createElement("h2");
+                        titleElement.classList.add("post-title");
+                        titleElement.textContent = post.title;
+                        postDiv.appendChild(titleElement);
+
+                        if (post.imageUrl) {
+                            const imageElement = document.createElement("img");
+                            imageElement.classList.add("post-image");
+                            imageElement.src = post.imageUrl;
+                            postDiv.appendChild(imageElement);
+                        }
+
+                        const descriptionElement = document.createElement("p");
+                        descriptionElement.classList.add("post-description");
+                        descriptionElement.textContent = post.description;
+                        postDiv.appendChild(descriptionElement);
+
+                        const posterElement = document.createElement("p");
+                        posterElement.classList.add("post-poster");
+                        posterElement.innerHTML = `Posted by: <a href="profile.html?userId=${post.posterId}">${post.posterName}</a>`;
+                        postDiv.appendChild(posterElement);
+
+                        postsContainer.appendChild(postDiv);
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error getting posts: ", error);
+                });
+        }
+
     </script>
-    <link rel="stylesheet" href="index.css">
-</head>
-<body class="requests">
-    <h1 class="page-title">Request Forum</h1>
-    <p class="page-subtitle">Welcome to your requests page.</p>
 </body>
 </html>
