@@ -96,63 +96,59 @@
         });
 
         function loadPosts(currentUserId) {
-            const postsContainer = document.getElementById("postsContainer");
-            postsContainer.innerHTML = ""; // Clear existing posts
+    const postsContainer = document.getElementById("postsContainer");
+    postsContainer.innerHTML = ""; // Clear existing posts
 
-            db.collection("posts").orderBy("timestamp", "desc").get()
-                .then((querySnapshot) => {
-                    querySnapshot.forEach((doc) => {
-                        const post = doc.data();
-                        const postId = doc.id; // Get the document ID
+    db.collection("posts").orderBy("timestamp", "desc").get()
+        .then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                const post = doc.data();
+                const postId = doc.id; // Get the document ID
 
-                        // Create post elements
-                        const postDiv = document.createElement("div");
-                        postDiv.classList.add("post");
+                // Create post elements
+                const postDiv = document.createElement("div");
+                postDiv.classList.add("post");
 
-                        const titleElement = document.createElement("h2");
-                        titleElement.classList.add("post-title");
-                        titleElement.textContent = post.title;
-                        postDiv.appendChild(titleElement);
+                // Add the image if it exists
+                if (post.imageUrl) {
+                    const imageElement = document.createElement("img");
+                    imageElement.classList.add("post-image");
+                    imageElement.src = post.imageUrl; // Use the image URL
+                    imageElement.alt = "Post Image"; // Add alt text for accessibility
+                    postDiv.appendChild(imageElement);
+                }
 
-                        const descriptionElement = document.createElement("p");
-                        descriptionElement.classList.add("post-description");
-                        descriptionElement.textContent = post.description;
-                        postDiv.appendChild(descriptionElement);
+                const titleElement = document.createElement("h2");
+                titleElement.classList.add("post-title");
+                titleElement.textContent = post.title;
+                postDiv.appendChild(titleElement);
 
-                        const posterElement = document.createElement("p");
-                        posterElement.classList.add("post-poster");
-                        posterElement.innerHTML = `Posted by: <a href="profileTemplate.html?userId=${post.posterId}">${post.posterName}</a>`;
-                        postDiv.appendChild(posterElement);
+                const descriptionElement = document.createElement("p");
+                descriptionElement.classList.add("post-description");
+                descriptionElement.textContent = post.description;
+                postDiv.appendChild(descriptionElement);
 
-                        // Add delete button if the current user is the creator of the post
-                        if (post.posterId === currentUserId) {
-                            const deleteButton = document.createElement("button");
-                            deleteButton.classList.add("delete-button");
-                            deleteButton.textContent = "Delete Post";
-                            deleteButton.onclick = () => deletePost(postId);
-                            postDiv.appendChild(deleteButton);
-                        }
+                const posterElement = document.createElement("p");
+                posterElement.classList.add("post-poster");
+                posterElement.innerHTML = `Posted by: <a href="profileTemplate.html?userId=${post.posterId}">${post.posterName}</a>`;
+                postDiv.appendChild(posterElement);
 
-                        postsContainer.appendChild(postDiv);
-                    });
-                })
-                .catch((error) => {
-                    console.error("Error getting posts: ", error);
-                });
-        }
+                // Add delete button if the current user is the creator of the post
+                if (post.posterId === currentUserId) {
+                    const deleteButton = document.createElement("button");
+                    deleteButton.classList.add("delete-button");
+                    deleteButton.textContent = "Delete Post";
+                    deleteButton.onclick = () => deletePost(postId);
+                    postDiv.appendChild(deleteButton);
+                }
 
-        function deletePost(postId) {
-            if (confirm("Are you sure you want to delete this post?")) {
-                db.collection("posts").doc(postId).delete()
-                    .then(() => {
-                        console.log("Post successfully deleted!");
-                        loadPosts(auth.currentUser.uid); // Reload posts after deletion
-                    })
-                    .catch((error) => {
-                        console.error("Error deleting post: ", error);
-                    });
-            }
-        }
+                postsContainer.appendChild(postDiv);
+            });
+        })
+        .catch((error) => {
+            console.error("Error getting posts: ", error);
+        });
+}
     </script>
 </body>
 </html>

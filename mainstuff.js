@@ -74,12 +74,11 @@ function createPost() {
 }
 
 function savePost(title, description, imageUrl, user) {
-    // Save the post data to Firestore
     db.collection("posts").add({
         title: title,
         description: description,
         imageUrl: imageUrl, // Save the image URL
-        posterId: user.uid,
+        posterId: user.uid, // Ensure this matches the user's Firestore document ID
         posterName: user.displayName, // Or whatever you use for the name
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     })
@@ -89,14 +88,14 @@ function savePost(title, description, imageUrl, user) {
         document.getElementById("title").value = "";
         document.getElementById("description").value = "";
         document.getElementById("image").value = ""; // Clear the image input
-        // Optionally, display a success message
-        loadPosts(); // Reload the posts after creating a new one
+        loadPosts(user.uid); // Reload the posts after creating a new one
     })
     .catch((error) => {
         console.error("Error adding document: ", error);
     });
 }
-function loadPosts() {
+
+function loadPosts(currentUserId) {
     const postsContainer = document.getElementById("postsContainer");
     postsContainer.innerHTML = ""; // Clear existing posts
 
@@ -104,37 +103,45 @@ function loadPosts() {
         .then((querySnapshot) => {
             querySnapshot.forEach((doc) => {
                 const post = doc.data();
+                const postId = doc.id; // Get the document ID
 
                 // Create post elements
                 const postDiv = document.createElement("div");
                 postDiv.classList.add("post");
 
+                // Add the image if it exists
                 if (post.imageUrl) {
                     const imageElement = document.createElement("img");
                     imageElement.classList.add("post-image");
                     imageElement.src = post.imageUrl; // Use the image URL
+                    imageElement.alt = "Post Image"; // Add alt text for accessibility
                     postDiv.appendChild(imageElement);
                 }
-
-                const postContent = document.createElement("div");
-                postContent.classList.add("post-content");
 
                 const titleElement = document.createElement("h2");
                 titleElement.classList.add("post-title");
                 titleElement.textContent = post.title;
-                postContent.appendChild(titleElement);
+                postDiv.appendChild(titleElement);
 
                 const descriptionElement = document.createElement("p");
                 descriptionElement.classList.add("post-description");
                 descriptionElement.textContent = post.description;
-                postContent.appendChild(descriptionElement);
+                postDiv.appendChild(descriptionElement);
 
                 const posterElement = document.createElement("p");
                 posterElement.classList.add("post-poster");
                 posterElement.innerHTML = `Posted by: <a href="profileTemplate.html?userId=${post.posterId}">${post.posterName}</a>`;
-                postContent.appendChild(posterElement);
+                postDiv.appendChild(posterElement);
 
-                postDiv.appendChild(postContent);
+                // Add delete button if the current user is the creator of the post
+                if (post.posterId === currentUserId) {
+                    const deleteButton = document.createElement("button");
+                    deleteButton.classList.add("delete-button");
+                    deleteButton.textContent = "Delete Post";
+                    deleteButton.onclick = () => deletePost(postId);
+                    postDiv.appendChild(deleteButton);
+                }
+
                 postsContainer.appendChild(postDiv);
             });
         })
@@ -149,7 +156,7 @@ async function uploadImageToImgur(imageFile) {
     const response = await fetch("https://api.imgur.com/3/image", {
         method: "POST",
         headers: {
-            Authorization: "ded28a6c3f4c403", // Replace with your Imgur Client ID
+            Authorization: "Client-ID YOUR_IMGUR_CLIENT_ID", // Replace with your Imgur Client ID
         },
         body: formData,
     });
