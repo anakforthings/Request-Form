@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Sign-In/Sign-Up with Google</title>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
@@ -21,10 +22,13 @@
         firebase.initializeApp(firebaseConfig);
     </script>
     <script src="mainstuff.js"></script>
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
-    <h1>Sign-In/Sign-Up</h1>
-    <button onclick="signInWithGoogle()">Sign in with Google</button>
-    <p id="message"></p>
+    <div class="container">
+        <h1>Sign-In</h1>
+        <button onclick="signInWithGoogle()">Sign in with Google</button>
+        <p id="message"></p>
+      </div>    
 </body>
 </html>

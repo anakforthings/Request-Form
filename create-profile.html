@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="index.css">
     <title>Create Profile</title>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
@@ -50,10 +52,16 @@
     </script>
 </head>
 <body>
-    <h1>Create Your Profile</h1>
-    <label for="displayName">Display Name:</label>
-    <input type="text" id="displayName" name="displayName"><br><br>
-    <button onclick="saveProfile()">Save Profile</button>
-    <p id="message"></p>
+    <div class="container">
+        <h1>Create Your Profile</h1>
+    
+        <div class="form-group">
+          <label for="displayName">Display Name:</label>
+          <input type="text" id="displayName" name="displayName" placeholder="Enter your display name" required>
+        </div>
+    
+        <button onclick="saveProfile()">Save Profile</button>
+        <p id="message"></p>
+      </div>    
 </body>
 </html>
