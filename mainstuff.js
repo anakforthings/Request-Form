@@ -145,7 +145,7 @@ async function uploadImageToImgur(imageFile) {
     const response = await fetch("https://api.imgur.com/3/image", {
         method: "POST",
         headers: {
-            Authorization: "Client-ID YOUR_IMGUR_CLIENT_ID", // Replace with your Imgur Client ID
+            Authorization: "ded28a6c3f4c403", // Replace with your Imgur Client ID
         },
         body: formData,
     });
