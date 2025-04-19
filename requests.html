@@ -250,7 +250,29 @@ function loadPosts() {
             console.error("Error getting posts: ", error);
         });
 }
-
+function savePost(title, description, imageUrl, user) {
+    // Save the post data to Firestore
+    db.collection("posts").add({
+        title: title,
+        description: description,
+        imageUrl: imageUrl, // Save the image URL
+        posterId: user.uid,
+        posterName: user.displayName, // Or whatever you use for the name
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    })
+    .then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+        // Clear the form
+        document.getElementById("title").value = "";
+        document.getElementById("description").value = "";
+        document.getElementById("image").value = ""; // Clear the image input
+        // Optionally, display a success message
+        loadPosts(); // Reload the posts after creating a new one
+    })
+    .catch((error) => {
+        console.error("Error adding document: ", error);
+    });
+}
     </script>
 </body>
 </html>
