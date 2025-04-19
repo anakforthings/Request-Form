@@ -109,11 +109,6 @@ function loadPosts() {
                 const postDiv = document.createElement("div");
                 postDiv.classList.add("post");
 
-                const titleElement = document.createElement("h2");
-                titleElement.classList.add("post-title");
-                titleElement.textContent = post.title;
-                postDiv.appendChild(titleElement);
-
                 if (post.imageUrl) {
                     const imageElement = document.createElement("img");
                     imageElement.classList.add("post-image");
@@ -121,16 +116,25 @@ function loadPosts() {
                     postDiv.appendChild(imageElement);
                 }
 
+                const postContent = document.createElement("div");
+                postContent.classList.add("post-content");
+
+                const titleElement = document.createElement("h2");
+                titleElement.classList.add("post-title");
+                titleElement.textContent = post.title;
+                postContent.appendChild(titleElement);
+
                 const descriptionElement = document.createElement("p");
                 descriptionElement.classList.add("post-description");
                 descriptionElement.textContent = post.description;
-                postDiv.appendChild(descriptionElement);
+                postContent.appendChild(descriptionElement);
 
                 const posterElement = document.createElement("p");
                 posterElement.classList.add("post-poster");
-                posterElement.innerHTML = `Posted by: <a href="profile.html?userId=${post.posterId}">${post.posterName}</a>`;
-                postDiv.appendChild(posterElement);
+                posterElement.innerHTML = `Posted by: <a href="profileTemplate.html?userId=${post.posterId}">${post.posterName}</a>`;
+                postContent.appendChild(posterElement);
 
+                postDiv.appendChild(postContent);
                 postsContainer.appendChild(postDiv);
             });
         })
