@@ -57,25 +57,28 @@ function createPost() {
     }
 
     if (imageFile) {
-        // Convert the image to Base64
-        const reader = new FileReader();
-        reader.onload = function (event) {
-            const base64String = event.target.result.split(",")[1]; // Get the Base64 string
-            savePost(title, description, base64String, user);
-        };
-        reader.readAsDataURL(imageFile); // Read the file as a data URL
+        // Upload the image to Imgur
+        uploadImageToImgur(imageFile)
+            .then((imageUrl) => {
+                // Save the post data to Firestore with the image URL
+                savePost(title, description, imageUrl, user);
+            })
+            .catch((error) => {
+                console.error("Error uploading image to Imgur:", error);
+                alert("Failed to upload image. Please try again.");
+            });
     } else {
-        // If no image is selected, save the post without an image
+        // If no image is selected, save the post without an image URL
         savePost(title, description, "", user);
     }
 }
 
-function savePost(title, description, base64Image, user) {
+function savePost(title, description, imageUrl, user) {
     // Save the post data to Firestore
     db.collection("posts").add({
         title: title,
         description: description,
-        imageBase64: base64Image, // Save the Base64 string
+        imageUrl: imageUrl, // Save the image URL
         posterId: user.uid,
         posterName: user.displayName, // Or whatever you use for the name
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -111,10 +114,10 @@ function loadPosts() {
                 titleElement.textContent = post.title;
                 postDiv.appendChild(titleElement);
 
-                if (post.imageBase64) {
+                if (post.imageUrl) {
                     const imageElement = document.createElement("img");
                     imageElement.classList.add("post-image");
-                    imageElement.src = `data:image/jpeg;base64,${post.imageBase64}`; // Decode Base64
+                    imageElement.src = post.imageUrl; // Use the image URL
                     postDiv.appendChild(imageElement);
                 }
 
@@ -134,4 +137,23 @@ function loadPosts() {
         .catch((error) => {
             console.error("Error getting posts: ", error);
         });
+}
+async function uploadImageToImgur(imageFile) {
+    const formData = new FormData();
+    formData.append("image", imageFile);
+
+    const response = await fetch("https://api.imgur.com/3/image", {
+        method: "POST",
+        headers: {
+            Authorization: "Client-ID YOUR_IMGUR_CLIENT_ID", // Replace with your Imgur Client ID
+        },
+        body: formData,
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to upload image to Imgur");
+    }
+
+    const data = await response.json();
+    return data.data.link; // Return the image URL
 }
