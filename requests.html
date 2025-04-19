@@ -10,7 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="index.css">
     <style>
-   form {
+        form {
             max-width: 600px;
             margin: 20px auto;
             padding: 20px;
@@ -32,12 +32,12 @@
             margin-bottom: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            box-sizing: border-box; /* Ensures padding and border are included in the element's total width and height */
+            box-sizing: border-box;
         }
 
         textarea {
-            height: 100px; /* Adjust as needed */
-            resize: vertical; /* Allows the user to adjust the height */
+            height: 100px;
+            resize: vertical;
         }
 
         button {
@@ -53,25 +53,31 @@
             background-color: #449d44;
         }
 
-        /* Styling for the image upload */
         input[type="file"] {
             margin-bottom: 10px;
         }
+
         .post {
             border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
             background-color: #fff;
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            align-items: flex-start;
+            gap: 15px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .post-title {
-            font-size: 1.2em;
+            font-size: 1.5em;
             font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
         }
+
         .post-image {
             width: 150px;
             height: 150px;
@@ -81,10 +87,14 @@
 
         .post-description {
             margin-bottom: 10px;
+            font-size: 1em;
+            color: #555;
         }
 
         .post-poster {
             font-style: italic;
+            font-size: 0.9em;
+            color: #777;
             text-align: right;
         }
 
@@ -132,7 +142,7 @@
     <div id="postsContainer"></div>
 
     <script>
-        // Firebase configuration (Ensure this matches your main config)
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAhcjMfi1p5YGyRiK14ux7gdYcEAYBXtGc",
             authDomain: "request-form-263db.firebaseapp.com",
@@ -141,7 +151,7 @@
             appId: "1:729877304681:web:3983c69cee3afd18ae59f8"
         };
 
-        // Initialize Firebase (if not already initialized)
+        // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -151,169 +161,166 @@
 
         auth.onAuthStateChanged(user => {
             if (user) {
-                // User is signed in.
                 console.log("User is signed in:", user);
-                loadPosts(user.uid); // Pass the user's ID to loadPosts
+                loadPosts(user.uid);
             } else {
-                // No user is signed in.
                 console.log("No user is signed in.");
-                window.location.href = "index.html"; // Redirect to sign-in page
+                window.location.href = "index.html";
             }
         });
 
         function loadPosts(currentUserId) {
-    const postsContainer = document.getElementById("postsContainer");
-    postsContainer.innerHTML = ""; // Clear existing posts
+            const postsContainer = document.getElementById("postsContainer");
+            postsContainer.innerHTML = "";
 
-    db.collection("posts").orderBy("timestamp", "desc").get()
-        .then((querySnapshot) => {
-            querySnapshot.forEach((doc) => {
-                const post = doc.data();
-                const postId = doc.id; // Get the document ID
+            db.collection("posts").orderBy("timestamp", "desc").get()
+                .then((querySnapshot) => {
+                    querySnapshot.forEach((doc) => {
+                        const post = doc.data();
+                        const postId = doc.id;
 
-                // Create post elements
-                const postDiv = document.createElement("div");
-                postDiv.classList.add("post");
+                        const postDiv = document.createElement("div");
+                        postDiv.classList.add("post");
 
-                // Add the image if it exists
-                if (post.imageUrl) {
-                    const imageElement = document.createElement("img");
-                    imageElement.classList.add("post-image");
-                    imageElement.src = post.imageUrl; // Use the image URL
-                    imageElement.alt = "Post Image"; // Add alt text for accessibility
-                    postDiv.appendChild(imageElement);
-                }
+                        if (post.imageUrl) {
+                            const imageElement = document.createElement("img");
+                            imageElement.classList.add("post-image");
+                            imageElement.src = post.imageUrl;
+                            imageElement.alt = "Post Image";
+                            postDiv.appendChild(imageElement);
+                        }
 
-                const titleElement = document.createElement("h2");
-                titleElement.classList.add("post-title");
-                titleElement.textContent = post.title;
-                postDiv.appendChild(titleElement);
+                        const postContent = document.createElement("div");
+                        postContent.classList.add("post-content");
 
-                const descriptionElement = document.createElement("p");
-                descriptionElement.classList.add("post-description");
-                descriptionElement.textContent = post.description;
-                postDiv.appendChild(descriptionElement);
+                        const titleElement = document.createElement("h2");
+                        titleElement.classList.add("post-title");
+                        titleElement.textContent = post.title;
+                        postContent.appendChild(titleElement);
 
-                const posterElement = document.createElement("p");
-                posterElement.classList.add("post-poster");
-                posterElement.innerHTML = `Posted by: <a href="profileTemplate.html?userId=${post.posterId}">${post.posterName}</a>`;
-                postDiv.appendChild(posterElement);
+                        const descriptionElement = document.createElement("p");
+                        descriptionElement.classList.add("post-description");
+                        descriptionElement.textContent = post.description;
+                        postContent.appendChild(descriptionElement);
 
-                // Add delete button if the current user is the creator of the post
-                if (post.posterId === currentUserId) {
-                    const deleteButton = document.createElement("button");
-                    deleteButton.classList.add("delete-button");
-                    deleteButton.textContent = "Delete Post";
-                    deleteButton.onclick = () => deletePost(postId);
-                    postDiv.appendChild(deleteButton);
-                }
+                        const posterElement = document.createElement("p");
+                        posterElement.classList.add("post-poster");
+                        posterElement.innerHTML = `Posted by: <a href="profileTemplate.html?userId=${post.posterId}">${post.posterName}</a>`;
+                        postContent.appendChild(posterElement);
 
-                postsContainer.appendChild(postDiv);
-            });
-        })
-        .catch((error) => {
-            console.error("Error getting posts: ", error);
-        });
-}
-function createPost() {
-    const title = document.getElementById("title").value;
-    const description = document.getElementById("description").value;
-    const imageFile = document.getElementById("image").files[0]; // Get the image file
+                        if (post.posterId === currentUserId) {
+                            const deleteButton = document.createElement("button");
+                            deleteButton.classList.add("delete-button");
+                            deleteButton.textContent = "Delete Post";
+                            deleteButton.onclick = () => deletePost(postId);
+                            postContent.appendChild(deleteButton);
+                        }
 
-    const user = auth.currentUser;
-
-    if (!user) {
-        console.log("No user logged in.");
-        return;
-    }
-
-    if (!title || !description) {
-        alert("Please fill in all fields.");
-        return;
-    }
-
-    // File size limit (e.g., 1 MB = 1,048,576 bytes)
-    const fileSizeLimit = 1 * 1024 * 1024; // 1 MB
-
-    if (imageFile && imageFile.size > fileSizeLimit) {
-        alert("File size exceeds the 1 MB limit. Please upload a smaller file.");
-        return;
-    }
-
-    if (imageFile) {
-        // Upload the image to Imgur
-        uploadImageToImgur(imageFile)
-            .then((imageUrl) => {
-                // Save the post data to Firestore with the image URL
-                savePost(title, description, imageUrl, user);
-            })
-            .catch((error) => {
-                console.error("Error uploading image to Imgur:", error);
-                alert("Failed to upload image. Please try again.");
-            });
-    } else {
-        // If no image is selected, save the post without an image URL
-        savePost(title, description, "", user);
-    }
-}
-function deletePost(postId) {
-    if (confirm("Are you sure you want to delete this post?")) {
-        db.collection("posts").doc(postId).delete()
-            .then(() => {
-                console.log("Post successfully deleted!");
-                // Reload the posts after deletion
-                auth.onAuthStateChanged(user => {
-                    if (user) {
-                        loadPosts(user.uid); // Reload posts for the current user
-                    }
+                        postDiv.appendChild(postContent);
+                        postsContainer.appendChild(postDiv);
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error getting posts: ", error);
                 });
+        }
+
+        function createPost() {
+            const title = document.getElementById("title").value;
+            const description = document.getElementById("description").value;
+            const imageFile = document.getElementById("image").files[0];
+
+            const user = auth.currentUser;
+
+            if (!user) {
+                console.log("No user logged in.");
+                return;
+            }
+
+            if (!title || !description) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            const fileSizeLimit = 1 * 1024 * 1024;
+
+            if (imageFile && imageFile.size > fileSizeLimit) {
+                alert("File size exceeds the 1 MB limit. Please upload a smaller file.");
+                return;
+            }
+
+            if (imageFile) {
+                uploadImageToImgur(imageFile)
+                    .then((imageUrl) => {
+                        savePost(title, description, imageUrl, user);
+                    })
+                    .catch((error) => {
+                        console.error("Error uploading image to Imgur:", error);
+                        alert("Failed to upload image. Please try again.");
+                    });
+            } else {
+                savePost(title, description, "", user);
+            }
+        }
+
+        function deletePost(postId) {
+            if (confirm("Are you sure you want to delete this post?")) {
+                db.collection("posts").doc(postId).delete()
+                    .then(() => {
+                        console.log("Post successfully deleted!");
+                        auth.onAuthStateChanged(user => {
+                            if (user) {
+                                loadPosts(user.uid);
+                            }
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error deleting post:", error);
+                        alert("An error occurred while trying to delete the post. Please try again.");
+                    });
+            }
+        }
+
+        async function uploadImageToImgur(imageFile) {
+            const formData = new FormData();
+            formData.append("image", imageFile);
+
+            const response = await fetch("https://api.imgur.com/3/image", {
+                method: "POST",
+                headers: {
+                    Authorization: "Client-ID 21715d0fd0bed38",
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to upload image to Imgur");
+            }
+
+            const data = await response.json();
+            return data.data.link;
+        }
+
+        function savePost(title, description, imageUrl, user) {
+            db.collection("posts").add({
+                title: title,
+                description: description,
+                imageUrl: imageUrl,
+                posterId: user.uid,
+                posterName: user.displayName,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            })
+            .then((docRef) => {
+                console.log("Document written with ID: ", docRef.id);
+                document.getElementById("title").value = "";
+                document.getElementById("description").value = "";
+                document.getElementById("image").value = "";
+                loadPosts(user.uid);
             })
             .catch((error) => {
-                console.error("Error deleting post: ", error);
-                alert("An error occurred while trying to delete the post. Please try again.");
+                console.error("Error adding document:", error);
             });
-    }
-}
-async function uploadImageToImgur(imageFile) {
-    const formData = new FormData();
-    formData.append("image", imageFile);
-
-    const response = await fetch("https://api.imgur.com/3/image", {
-        method: "POST",
-        headers: {
-            Authorization: "Client-ID 21715d0fd0bed38", // Replace with your Imgur Client ID
-        },
-        body: formData,
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to upload image to Imgur");
-    }
-
-    const data = await response.json();
-    return data.data.link; // Return the image URL
-}
-function savePost(title, description, imageUrl, user) {
-    db.collection("posts").add({
-        title: title,
-        description: description,
-        imageUrl: imageUrl, // Save the image URL
-        posterId: user.uid, // Ensure this matches the user's Firestore document ID
-        posterName: user.displayName, // Or whatever you use for the name
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    })
-    .then((docRef) => {
-        console.log("Document written with ID: ", docRef.id);
-        // Clear the form
-        document.getElementById("title").value = "";
-        document.getElementById("description").value = "";
-        document.getElementById("image").value = ""; // Clear the image input
-        loadPosts(user.uid); // Reload the posts after creating a new one
-    })
-    .catch((error) => {
-        console.error("Error adding document: ", error);
-    });
-}
+        }
     </script>
 </body>
 </html>
