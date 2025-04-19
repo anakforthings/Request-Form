@@ -78,7 +78,7 @@
                 .then((doc) => {
                     if (doc.exists) {
                         const userData = doc.data();
-                        document.getElementById("profileName").textContent = userData.name || "Unknown User";
+                        document.getElementById("profileName").textContent = userData.displayName || "Unknown User";
                         document.getElementById("profileEmail").textContent = userData.email || "Email not available.";
                     } else {
                         document.getElementById("profileName").textContent = "User Not Found";
