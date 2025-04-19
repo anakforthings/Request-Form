@@ -9,72 +9,123 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="index.css">
     <style>
-        /* Styling for posts */
-.post {
-    border: 1px solid #ccc;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-}
+   form {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
 
-/* Styling for post images */
-.post-image {
-    width: 150px;
-    height: 150px;
-    object-fit: cover; /* Ensures the image is cropped to fit the dimensions */
-    border-radius: 5px;
-}
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
 
-/* Styling for post content */
-.post-content {
-    flex: 1; /* Allows the content to take up the remaining space */
-}
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box; /* Ensures padding and border are included in the element's total width and height */
+        }
 
-/* Styling for post title */
-.post-title {
-    font-size: 1.5em;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
+        textarea {
+            height: 100px; /* Adjust as needed */
+            resize: vertical; /* Allows the user to adjust the height */
+        }
 
-/* Styling for post description */
-.post-description {
-    margin-bottom: 10px;
-    font-size: 1em;
-    color: #333;
-}
+        button {
+            background-color: #5cb85c;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
-/* Styling for poster information */
-.post-poster {
-    font-style: italic;
-    font-size: 0.9em;
-    color: #555;
-    text-align: right;
-}
+        button:hover {
+            background-color: #449d44;
+        }
 
-/* Styling for delete button */
-.delete-button {
-    background-color: #ff4d4d;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    align-self: flex-end;
-}
+        /* Styling for the image upload */
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+        .post {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
-.delete-button:hover {
-    background-color: #cc0000;
-}
+        .post-title {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .post-image {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .post-description {
+            margin-bottom: 10px;
+        }
+
+        .post-poster {
+            font-style: italic;
+            text-align: right;
+        }
+
+        .post-poster a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .post-poster a:hover {
+            text-decoration: underline;
+        }
+
+        .delete-button {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            align-self: flex-end;
+        }
+
+        .delete-button:hover {
+            background-color: #cc0000;
+        }
     </style>
 </head>
 <body class="requests">
     <h1 class="page-title">Request Forum</h1>
     <p class="page-subtitle">Welcome to your requests page.</p>
+    <form id="postForm">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+
+        <label for="image">Image:</label>
+        <input type="file" id="image" name="image" accept="image/*">
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required></textarea>
+
+        <button type="button" onclick="createPost()">Create Post</button>
+    </form>
 
     <!-- Container to display posts -->
     <div id="postsContainer"></div>
@@ -162,6 +213,24 @@
         .catch((error) => {
             console.error("Error getting posts: ", error);
         });
+}
+function deletePost(postId) {
+    if (confirm("Are you sure you want to delete this post?")) {
+        db.collection("posts").doc(postId).delete()
+            .then(() => {
+                console.log("Post successfully deleted!");
+                // Reload the posts after deletion
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        loadPosts(user.uid); // Reload posts for the current user
+                    }
+                });
+            })
+            .catch((error) => {
+                console.error("Error deleting post: ", error);
+                alert("An error occurred while trying to delete the post. Please try again.");
+            });
+    }
 }
     </script>
 </body>
