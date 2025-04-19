@@ -9,53 +9,67 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="index.css">
     <style>
-        .post {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            background-color: #fff;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        /* Styling for posts */
+.post {
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
 
-        .post-title {
-            font-size: 1.2em;
-            font-weight: bold;
-        }
+/* Styling for post images */
+.post-image {
+    width: 150px;
+    height: 150px;
+    object-fit: cover; /* Ensures the image is cropped to fit the dimensions */
+    border-radius: 5px;
+}
 
-        .post-description {
-            margin-bottom: 10px;
-        }
+/* Styling for post content */
+.post-content {
+    flex: 1; /* Allows the content to take up the remaining space */
+}
 
-        .post-poster {
-            font-style: italic;
-            text-align: right;
-        }
+/* Styling for post title */
+.post-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
 
-        .post-poster a {
-            color: #007bff;
-            text-decoration: none;
-        }
+/* Styling for post description */
+.post-description {
+    margin-bottom: 10px;
+    font-size: 1em;
+    color: #333;
+}
 
-        .post-poster a:hover {
-            text-decoration: underline;
-        }
+/* Styling for poster information */
+.post-poster {
+    font-style: italic;
+    font-size: 0.9em;
+    color: #555;
+    text-align: right;
+}
 
-        .delete-button {
-            background-color: #ff4d4d;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            align-self: flex-end;
-        }
+/* Styling for delete button */
+.delete-button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    align-self: flex-end;
+}
 
-        .delete-button:hover {
-            background-color: #cc0000;
-        }
+.delete-button:hover {
+    background-color: #cc0000;
+}
     </style>
 </head>
 <body class="requests">

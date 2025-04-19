@@ -97,7 +97,7 @@ function savePost(title, description, imageUrl, user) {
 
 function loadPosts(currentUserId) {
     const postsContainer = document.getElementById("postsContainer");
-    postsContainer.innerHTML = ""; 
+    postsContainer.innerHTML = ""; // Clear existing posts
 
     db.collection("posts").orderBy("timestamp", "desc").get()
         .then((querySnapshot) => {
@@ -118,20 +118,24 @@ function loadPosts(currentUserId) {
                     postDiv.appendChild(imageElement);
                 }
 
+                // Create a container for the post content
+                const postContent = document.createElement("div");
+                postContent.classList.add("post-content");
+
                 const titleElement = document.createElement("h2");
                 titleElement.classList.add("post-title");
                 titleElement.textContent = post.title;
-                postDiv.appendChild(titleElement);
+                postContent.appendChild(titleElement);
 
                 const descriptionElement = document.createElement("p");
                 descriptionElement.classList.add("post-description");
                 descriptionElement.textContent = post.description;
-                postDiv.appendChild(descriptionElement);
+                postContent.appendChild(descriptionElement);
 
                 const posterElement = document.createElement("p");
                 posterElement.classList.add("post-poster");
                 posterElement.innerHTML = `Posted by: <a href="profileTemplate.html?userId=${post.posterId}">${post.posterName}</a>`;
-                postDiv.appendChild(posterElement);
+                postContent.appendChild(posterElement);
 
                 // Add delete button if the current user is the creator of the post
                 if (post.posterId === currentUserId) {
@@ -139,9 +143,13 @@ function loadPosts(currentUserId) {
                     deleteButton.classList.add("delete-button");
                     deleteButton.textContent = "Delete Post";
                     deleteButton.onclick = () => deletePost(postId);
-                    postDiv.appendChild(deleteButton);
+                    postContent.appendChild(deleteButton);
                 }
 
+                // Append the content container to the post
+                postDiv.appendChild(postContent);
+
+                // Append the post to the posts container
                 postsContainer.appendChild(postDiv);
             });
         })
