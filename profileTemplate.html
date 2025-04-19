@@ -74,7 +74,7 @@
 
         if (userId) {
             // Fetch the user's profile data from Firestore
-            db.collection("users").doc(userId).get()
+            db.collection("profiles").doc(userId).get()
                 .then((doc) => {
                     if (doc.exists) {
                         const userData = doc.data();
