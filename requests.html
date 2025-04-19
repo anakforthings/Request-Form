@@ -293,6 +293,27 @@ async function uploadImageToImgur(imageFile) {
     const data = await response.json();
     return data.data.link; // Return the image URL
 }
+function savePost(title, description, imageUrl, user) {
+    db.collection("posts").add({
+        title: title,
+        description: description,
+        imageUrl: imageUrl, // Save the image URL
+        posterId: user.uid, // Ensure this matches the user's Firestore document ID
+        posterName: user.displayName, // Or whatever you use for the name
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    })
+    .then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+        // Clear the form
+        document.getElementById("title").value = "";
+        document.getElementById("description").value = "";
+        document.getElementById("image").value = ""; // Clear the image input
+        loadPosts(user.uid); // Reload the posts after creating a new one
+    })
+    .catch((error) => {
+        console.error("Error adding document: ", error);
+    });
+}
     </script>
 </body>
 </html>
