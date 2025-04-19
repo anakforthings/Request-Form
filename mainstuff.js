@@ -97,7 +97,7 @@ function savePost(title, description, imageUrl, user) {
 
 function loadPosts(currentUserId) {
     const postsContainer = document.getElementById("postsContainer");
-    postsContainer.innerHTML = ""; // Clear existing posts
+    postsContainer.innerHTML = ""; 
 
     db.collection("posts").orderBy("timestamp", "desc").get()
         .then((querySnapshot) => {
