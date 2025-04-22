@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="index.css">
     <title>Create Profile</title>
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     <script>
-        // Firebase configuration (Ensure this matches your main config)
         const firebaseConfig = {
             apiKey: "AIzaSyAhcjMfi1p5YGyRiK14ux7gdYcEAYBXtGc",
             authDomain: "request-form-263db.firebaseapp.com",
@@ -19,7 +17,6 @@
             appId: "1:729877304681:web:3983c69cee3afd18ae59f8"
         };
 
-        // Initialize Firebase (if not already initialized)
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -38,7 +35,7 @@
                 })
                 .then(() => {
                     console.log("Profile saved!");
-                    window.location.href = "requests.html"; // Redirect to requests page
+                    window.location.href = "requests.html"; 
                 })
                 .catch((error) => {
                     console.error("Error saving profile:", error);
@@ -46,7 +43,7 @@
                 });
             } else {
                 console.log("No user logged in.");
-                window.location.href = "index.html"; // Redirect to sign-in page
+                window.location.href = "index.html"; 
             }
         }
     </script>

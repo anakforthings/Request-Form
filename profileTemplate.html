@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>User Profile</title>
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
@@ -52,7 +51,6 @@
     </div>
 
     <script>
-        // Firebase configuration (Ensure this matches your main config)
         const firebaseConfig = {
             apiKey: "AIzaSyAhcjMfi1p5YGyRiK14ux7gdYcEAYBXtGc",
             authDomain: "request-form-263db.firebaseapp.com",
@@ -61,19 +59,16 @@
             appId: "1:729877304681:web:3983c69cee3afd18ae59f8"
         };
 
-        // Initialize Firebase (if not already initialized)
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
 
         const db = firebase.firestore();
 
-        // Get the userId from the URL query parameter
         const urlParams = new URLSearchParams(window.location.search);
         const userId = urlParams.get("userId");
 
         if (userId) {
-            // Fetch the user's profile data from Firestore
             db.collection("profiles").doc(userId).get()
                 .then((doc) => {
                     if (doc.exists) {

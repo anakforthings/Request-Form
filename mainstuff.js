@@ -9,14 +9,11 @@ function signInWithGoogle() {
             const user = result.user;
             console.log("User signed in:", user);
 
-            // Check if user has a profile in Firestore
             db.collection("profiles").doc(user.uid).get()
                 .then((doc) => {
                     if (doc.exists) {
-                        // User has a profile, redirect to requests page
                         window.location.href = "requests.html";
                     } else {
-                        // User doesn't have a profile, redirect to profile creation page
                         window.location.href = "create-profile.html";
                     }
                 })
@@ -34,7 +31,7 @@ function signInWithGoogle() {
 function createPost() {
     const title = document.getElementById("title").value;
     const description = document.getElementById("description").value;
-    const imageFile = document.getElementById("image").files[0]; // Get the image file
+    const imageFile = document.getElementById("image").files[0]; 
 
     const user = auth.currentUser;
 
@@ -48,8 +45,7 @@ function createPost() {
         return;
     }
 
-    // File size limit (e.g., 1 MB = 1,048,576 bytes)
-    const fileSizeLimit = 1 * 1024 * 1024; // 1 MB
+    const fileSizeLimit = 1 * 1024 * 1024;
 
     if (imageFile && imageFile.size > fileSizeLimit) {
         alert("File size exceeds the 1 MB limit. Please upload a smaller file.");
@@ -57,10 +53,8 @@ function createPost() {
     }
 
     if (imageFile) {
-        // Upload the image to Imgur
         uploadImageToImgur(imageFile)
             .then((imageUrl) => {
-                // Save the post data to Firestore with the image URL
                 savePost(title, description, imageUrl, user);
             })
             .catch((error) => {
@@ -68,7 +62,6 @@ function createPost() {
                 alert("Failed to upload image. Please try again.");
             });
     } else {
-        // If no image is selected, save the post without an image URL
         savePost(title, description, "", user);
     }
 }
@@ -77,18 +70,17 @@ function savePost(title, description, imageUrl, user) {
     db.collection("posts").add({
         title: title,
         description: description,
-        imageUrl: imageUrl, // Save the image URL
-        posterId: user.uid, // Ensure this matches the user's Firestore document ID
-        posterName: user.displayName, // Or whatever you use for the name
+        imageUrl: imageUrl, 
+        posterId: user.uid,
+        posterName: user.displayName,
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     })
     .then((docRef) => {
         console.log("Document written with ID: ", docRef.id);
-        // Clear the form
         document.getElementById("title").value = "";
         document.getElementById("description").value = "";
-        document.getElementById("image").value = ""; // Clear the image input
-        loadPosts(user.uid); // Reload the posts after creating a new one
+        document.getElementById("image").value = ""; 
+        loadPosts(user.uid); 
     })
     .catch((error) => {
         console.error("Error adding document: ", error);
@@ -97,28 +89,27 @@ function savePost(title, description, imageUrl, user) {
 
 function loadPosts(currentUserId) {
     const postsContainer = document.getElementById("postsContainer");
-    postsContainer.innerHTML = ""; // Clear existing posts
+    postsContainer.innerHTML = ""; 
 
     db.collection("posts").orderBy("timestamp", "desc").get()
         .then((querySnapshot) => {
             querySnapshot.forEach((doc) => {
                 const post = doc.data();
-                const postId = doc.id; // Get the document ID
+                const postId = doc.id;
 
-                // Create post elements
+               
                 const postDiv = document.createElement("div");
                 postDiv.classList.add("post");
 
-                // Add the image if it exists
+             
                 if (post.imageUrl) {
                     const imageElement = document.createElement("img");
                     imageElement.classList.add("post-image");
-                    imageElement.src = post.imageUrl; // Use the image URL
-                    imageElement.alt = "Post Image"; // Add alt text for accessibility
+                    imageElement.src = post.imageUrl; 
+                    imageElement.alt = "Post Image"; 
                     postDiv.appendChild(imageElement);
                 }
 
-                // Create a container for the post content
                 const postContent = document.createElement("div");
                 postContent.classList.add("post-content");
 
@@ -137,7 +128,6 @@ function loadPosts(currentUserId) {
                 posterElement.innerHTML = `Posted by: <a href="profileTemplate.html?userId=${post.posterId}">${post.posterName}</a>`;
                 postContent.appendChild(posterElement);
 
-                // Add delete button if the current user is the creator of the post
                 if (post.posterId === currentUserId) {
                     const deleteButton = document.createElement("button");
                     deleteButton.classList.add("delete-button");
@@ -146,10 +136,8 @@ function loadPosts(currentUserId) {
                     postContent.appendChild(deleteButton);
                 }
 
-                // Append the content container to the post
                 postDiv.appendChild(postContent);
 
-                // Append the post to the posts container
                 postsContainer.appendChild(postDiv);
             });
         })
@@ -164,7 +152,7 @@ async function uploadImageToImgur(imageFile) {
     const response = await fetch("https://api.imgur.com/3/image", {
         method: "POST",
         headers: {
-            Authorization: "Client-ID YOUR_IMGUR_CLIENT_ID", // Replace with your Imgur Client ID
+            Authorization: "Client-ID 21715d0fd0bed38", 
         },
         body: formData,
     });
@@ -174,5 +162,5 @@ async function uploadImageToImgur(imageFile) {
     }
 
     const data = await response.json();
-    return data.data.link; // Return the image URL
+    return data.data.link; 
 }
